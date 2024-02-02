@@ -66,7 +66,6 @@ func run(c string, trashname string) int {
 		return 1
 	}
 	fmt.Printf("[FINISHED]\n\n")
-	d.ShowResult()
 	fmt.Scanln()
 	return 0
 }
