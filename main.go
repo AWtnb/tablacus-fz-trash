@@ -57,11 +57,15 @@ func run(c string, trashname string) int {
 	if len(copied) < 1 {
 		return 0
 	}
-	dupls := filesys.Files{Paths: copied}
-	if err := dupls.RemoveFiles(); err != nil {
+
+	disposals := filesys.Files{Paths: copied}
+	disposals.Show()
+	fmt.Printf("\neverything successfully copied to '%s'.\nDeleting left files ===> ", trashname)
+	if err := disposals.RemoveFiles(); err != nil {
 		report(err.Error())
+		return 1
 	}
-	fmt.Printf("\n[FINISHED] ")
+	fmt.Printf("[FINISHED]\n\n")
 	d.ShowResult()
 	fmt.Scanln()
 	return 0
