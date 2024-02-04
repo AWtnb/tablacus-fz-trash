@@ -27,8 +27,8 @@ func report(s string) {
 	fmt.Scanln()
 }
 
-func border(s string) {
-	fmt.Printf("\n======================================\n %s\n======================================\n", strings.ToUpper(s))
+func showLabel(heading string, s string) {
+	fmt.Printf("\n\n[%s] %s:\n\n", strings.ToUpper(heading), s)
 }
 
 func newDir(path string) error {
@@ -77,9 +77,9 @@ func run(c string, trashname string) int {
 		report(err.Error())
 		return 1
 	}
-	border("successfully copied everything")
+	showLabel("done", "successfully copied everything")
 	t.Show()
-	fmt.Printf("Deleting left files ==>")
+	fmt.Printf("\nDeleting left files ==>")
 	if err := t.RemoveFiles(); err != nil {
 		report(err.Error())
 		return 1
