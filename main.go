@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/AWtnb/tablacus-fz-trash/filesys"
 	"github.com/ktr0731/go-fuzzyfinder"
@@ -26,6 +27,10 @@ func report(s string) {
 	fmt.Scanln()
 }
 
+func border(s string) {
+	fmt.Printf("\n======================================\n %s\n======================================\n", strings.ToUpper(s))
+}
+
 func newDir(path string) error {
 	if f, err := os.Stat(path); err == nil && f.IsDir() {
 		return nil
@@ -45,27 +50,41 @@ func run(c string, trashname string) int {
 
 	sfs := filesys.Files{Paths: selected}
 	dest := filepath.Join(c, trashname)
+	targets := sfs.GetNonDuplicates(dest)
+	dupls := sfs.GetDuplicates(dest)
+	if 0 < len(dupls) {
+		for _, dp := range dupls {
+			pr := fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp))
+			a := Asker{Prompt: pr, Accept: "y", Reject: "n"}
+			if !a.Accepted() {
+				fmt.Printf("==> skipped\n")
+			} else {
+				targets = append(targets, dp)
+			}
+		}
+	}
+
+	if len(targets) < 1 {
+		return 0
+	}
 	if err := newDir(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
-	copied, err := sfs.CopyFiles(dest)
-	if err != nil {
-		report(err.Error())
-		return 1
-	}
-	if len(copied) < 1 {
-		return 0
-	}
 
-	disposals := filesys.Files{Paths: copied}
-	disposals.Show()
-	fmt.Printf("\neverything successfully copied to '%s'.\nDeleting left files ===> ", trashname)
-	if err := disposals.RemoveFiles(); err != nil {
+	t := filesys.Files{Paths: targets}
+	if err := t.CopyFiles(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
-	fmt.Printf("[FINISHED]\n\n")
+	border("successfully copied everything")
+	t.Show()
+	fmt.Printf("Deleting left files ==>")
+	if err := t.RemoveFiles(); err != nil {
+		report(err.Error())
+		return 1
+	}
+	fmt.Println("FINISHED")
 	fmt.Scanln()
 	return 0
 }
