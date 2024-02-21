@@ -26,7 +26,7 @@ func (et Entry) name() string {
 
 type Dir struct {
 	Path      string
-	Trashname string
+	Exception string
 }
 
 func (d Dir) getChildren() (ets []Entry) {
@@ -35,7 +35,7 @@ func (d Dir) getChildren() (ets []Entry) {
 		return
 	}
 	for _, f := range fs {
-		if f.Name() == d.Trashname || strings.HasSuffix(f.Name(), ".ini") || strings.HasPrefix(f.Name(), "~$") {
+		if f.Name() == d.Exception || strings.HasSuffix(f.Name(), ".ini") || strings.HasPrefix(f.Name(), "~$") {
 			continue
 		}
 		p := filepath.Join(d.Path, f.Name())
