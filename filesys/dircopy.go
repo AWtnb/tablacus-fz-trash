@@ -7,9 +7,12 @@ import (
 	"strings"
 )
 
-func Copy(src string, newPath string) error {
+func CopyDir(src string, newPath string) error {
 	if _, err := os.Stat(newPath); err == nil {
-		return fmt.Errorf("dest path already exists")
+		err := os.RemoveAll(newPath)
+		if err != nil {
+			return fmt.Errorf("failed to remove already-existing dest path")
+		}
 	}
 	if strings.HasPrefix(newPath, src) {
 		return fmt.Errorf("danger to invoke infinit-loop")

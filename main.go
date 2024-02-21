@@ -31,16 +31,9 @@ func showLabel(heading string, s string) {
 	fmt.Printf("\n\n[%s] %s:\n\n", strings.ToUpper(heading), s)
 }
 
-func newDir(path string) error {
-	if f, err := os.Stat(path); err == nil && f.IsDir() {
-		return nil
-	}
-	return os.Mkdir(path, os.ModePerm)
-}
-
-func run(c string, trashname string) int {
-	d := filesys.Dir{Path: c}
-	selected, err := d.SelectItems(true, false)
+func run(cur string, trashname string) int {
+	d := filesys.Dir{Path: cur, Trashname: trashname}
+	selected, err := d.SelectItems()
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			report(err.Error())
@@ -48,39 +41,36 @@ func run(c string, trashname string) int {
 		return 1
 	}
 
-	sfs := filesys.Files{Paths: selected}
-	dest := filepath.Join(c, trashname)
-	targets := sfs.GetNonDuplicates(dest)
-	dupls := sfs.GetDuplicates(dest)
+	scs := filesys.Children{Paths: selected}
+	dest := filepath.Join(cur, trashname)
+	dupls := scs.Dupls(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
 			pr := fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp))
 			a := Asker{Prompt: pr, Accept: "y", Reject: "n"}
 			if !a.Accepted() {
 				fmt.Printf("==> skipped\n")
-			} else {
-				targets = append(targets, dp)
+				scs.Drop(dp)
 			}
 		}
 	}
 
-	if len(targets) < 1 {
+	if len(scs.Paths) < 1 {
 		return 0
 	}
-	if err := newDir(dest); err != nil {
+	if err := filesys.MakeDir(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
 
-	t := filesys.Files{Paths: targets}
-	if err := t.CopyFiles(dest); err != nil {
+	if err := scs.CopyTo(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
 	showLabel("done", "successfully copied everything")
-	t.Show()
+	scs.Show()
 	fmt.Printf("\nDeleting left files ==>")
-	if err := t.RemoveFiles(); err != nil {
+	if err := scs.Remove(); err != nil {
 		report(err.Error())
 		return 1
 	}
