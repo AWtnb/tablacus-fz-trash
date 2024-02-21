@@ -35,10 +35,13 @@ func (d Dir) getChildren() (ets []Entry) {
 		return
 	}
 	for _, f := range fs {
-		if f.Name() == d.Exception || strings.HasSuffix(f.Name(), ".ini") || strings.HasPrefix(f.Name(), "~$") {
+		if strings.HasSuffix(f.Name(), ".ini") || strings.HasPrefix(f.Name(), "~$") {
 			continue
 		}
 		p := filepath.Join(d.Path, f.Name())
+		if p == d.Exception {
+			continue
+		}
 		et := Entry{path: p}
 		ets = append(ets, et)
 	}

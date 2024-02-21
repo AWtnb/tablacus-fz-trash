@@ -32,7 +32,7 @@ func showLabel(heading string, s string) {
 }
 
 func run(cur string, trashname string) int {
-	d := filesys.Dir{Path: cur, Exception: trashname}
+	d := filesys.Dir{Path: cur, Exception: filepath.Join(cur, trashname)}
 	selected, err := d.SelectItems()
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
