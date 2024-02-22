@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/tablacus-fz-trash/dir"
 	"github.com/AWtnb/tablacus-fz-trash/filesys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
@@ -32,7 +33,7 @@ func showLabel(heading string, s string) {
 }
 
 func run(cur string, trashname string) int {
-	d := filesys.Dir{Path: cur, Exception: filepath.Join(cur, trashname)}
+	d := dir.Dir{Path: cur, Exception: filepath.Join(cur, trashname)}
 	selected, err := d.SelectItems()
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
@@ -41,36 +42,37 @@ func run(cur string, trashname string) int {
 		return 1
 	}
 
-	scs := filesys.Children{Paths: selected}
+	var group filesys.Group
+	group.Register(selected)
 	dest := filepath.Join(cur, trashname)
-	dupls := scs.Dupls(dest)
+	dupls := group.PreExists(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
 			pr := fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp))
 			a := Asker{Prompt: pr, Accept: "y", Reject: "n"}
 			if !a.Accepted() {
 				fmt.Printf("==> skipped\n")
-				scs.Drop(dp)
+				group.Drop(dp)
 			}
 		}
 	}
 
-	if len(scs.Paths) < 1 {
+	if group.Size() < 1 {
 		return 0
 	}
-	if err := filesys.MakeDir(dest); err != nil {
+	if err := dir.MakeDir(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
 
-	if err := scs.CopyTo(dest); err != nil {
+	if err := group.CopyTo(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
 	showLabel("done", "successfully copied everything")
-	scs.Show()
+	group.Show()
 	fmt.Printf("\nDeleting left files ==>")
-	if err := scs.Remove(); err != nil {
+	if err := group.Remove(); err != nil {
 		report(err.Error())
 		return 1
 	}
