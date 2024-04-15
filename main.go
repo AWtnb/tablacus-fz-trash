@@ -15,12 +15,14 @@ import (
 func main() {
 	var (
 		cur       string
+		focus     string
 		trashname string
 	)
 	flag.StringVar(&cur, "cur", "", "current dir path")
+	flag.StringVar(&focus, "focus", "", "selected item path")
 	flag.StringVar(&trashname, "trashname", "_obsolete", "trash folder name")
 	flag.Parse()
-	os.Exit(run(cur, trashname))
+	os.Exit(run(cur, focus, trashname))
 }
 
 func report(s string) {
@@ -32,9 +34,15 @@ func showLabel(heading string, s string) {
 	fmt.Printf("\n\n[%s] %s:\n\n", strings.ToUpper(heading), s)
 }
 
-func run(cur string, trashname string) int {
+func run(cur string, focus string, trashname string) int {
 	d := dir.Dir{Path: cur, Exception: filepath.Join(cur, trashname)}
-	selected, err := d.SelectItems()
+	var q string
+	if len(focus) < 1 {
+		q = ""
+	} else {
+		q = filepath.Base(focus)
+	}
+	selected, err := d.SelectItems(q)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			report(err.Error())
