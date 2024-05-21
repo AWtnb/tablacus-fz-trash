@@ -2,7 +2,10 @@ module github.com/AWtnb/tablacus-fz-trash
 
 go 1.21.4
 
-require github.com/ktr0731/go-fuzzyfinder v0.8.0
+require (
+	github.com/AWtnb/go-dircopy v1.0.0
+	github.com/ktr0731/go-fuzzyfinder v0.8.0
+)
 
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect
