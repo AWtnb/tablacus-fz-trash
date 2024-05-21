@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/go-asker"
 	"github.com/AWtnb/tablacus-fz-trash/dir"
 	"github.com/AWtnb/tablacus-fz-trash/filesys"
 	"github.com/ktr0731/go-fuzzyfinder"
@@ -56,8 +57,8 @@ func run(cur string, focus string, trashname string) int {
 	dupls := group.PreExists(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
-			pr := fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp))
-			a := Asker{Prompt: pr, Accept: "y", Reject: "n"}
+			a := asker.Asker{Accept: "y", Reject: "n"}
+			a.Ask(fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp)))
 			if !a.Accepted() {
 				fmt.Printf("==> skipped\n")
 				group.Drop(dp)
