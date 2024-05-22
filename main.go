@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/AWtnb/go-asker"
+	"github.com/AWtnb/go-filesys"
 	"github.com/AWtnb/tablacus-fz-trash/dir"
-	"github.com/AWtnb/tablacus-fz-trash/filesys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -51,22 +51,22 @@ func run(cur string, focus string, trashname string) int {
 		return 1
 	}
 
-	var group filesys.Group
-	group.Register(selected)
+	var fes filesys.Entries
+	fes.Register(selected)
 	dest := filepath.Join(cur, trashname)
-	dupls := group.PreExists(dest)
+	dupls := fes.PreExists(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
 			a := asker.Asker{Accept: "y", Reject: "n"}
 			a.Ask(fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp)))
 			if !a.Accepted() {
 				fmt.Printf("==> skipped\n")
-				group.Drop(dp)
+				fes.Drop(dp)
 			}
 		}
 	}
 
-	if group.Size() < 1 {
+	if fes.Size() < 1 {
 		return 0
 	}
 	if err := dir.MakeDir(dest); err != nil {
@@ -74,14 +74,14 @@ func run(cur string, focus string, trashname string) int {
 		return 1
 	}
 
-	if err := group.CopyTo(dest); err != nil {
+	if err := fes.CopyTo(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
 	showLabel("done", "successfully copied everything")
-	group.Show()
+	fes.Show()
 	fmt.Printf("\nDeleting left files ==>")
-	if err := group.Remove(); err != nil {
+	if err := fes.Remove(); err != nil {
 		report(err.Error())
 		return 1
 	}
