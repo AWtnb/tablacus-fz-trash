@@ -36,7 +36,10 @@ func showLabel(heading string, s string) {
 }
 
 func run(cur string, focus string, trashname string) int {
-	d := dir.Dir{Path: cur, Exception: filepath.Join(cur, trashname)}
+	dest := filepath.Join(cur, trashname)
+	var d dir.Dir
+	d.Init(cur)
+	d.Except(dest)
 	var q string
 	if len(focus) < 1 {
 		q = ""
@@ -53,7 +56,6 @@ func run(cur string, focus string, trashname string) int {
 
 	var fes filesys.Entries
 	fes.RegisterMulti(selected)
-	dest := filepath.Join(cur, trashname)
 	dupls := fes.UnMovable(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
@@ -69,7 +71,7 @@ func run(cur string, focus string, trashname string) int {
 	if fes.Size() < 1 {
 		return 0
 	}
-	if err := dir.MakeDir(dest); err != nil {
+	if err := dir.Create(dest); err != nil {
 		report(err.Error())
 		return 1
 	}
