@@ -52,16 +52,16 @@ func run(cur string, focus string, trashname string) int {
 	}
 
 	var fes filesys.Entries
-	fes.Register(selected)
+	fes.RegisterMulti(selected)
 	dest := filepath.Join(cur, trashname)
-	dupls := fes.PreExists(dest)
+	dupls := fes.UnMovable(dest)
 	if 0 < len(dupls) {
 		for _, dp := range dupls {
 			a := asker.Asker{Accept: "y", Reject: "n"}
 			a.Ask(fmt.Sprintf("Name duplicated: '%s'\noverwrite?", filepath.Base(dp)))
 			if !a.Accepted() {
 				fmt.Printf("==> skipped\n")
-				fes.Drop(dp)
+				fes.Exclude(dp)
 			}
 		}
 	}
